@@ -25,6 +25,12 @@ namespace ContosoUniversity.Models
 
         public DbSet<Course> Courses { get; set; }
 
+        public DbSet<OfficeAssignment> OfficeAssignments { get; set; }
+
+        public DbSet<Instructor> Instructors { get; set; }
+
+        public DbSet<Department> Departments { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
 
