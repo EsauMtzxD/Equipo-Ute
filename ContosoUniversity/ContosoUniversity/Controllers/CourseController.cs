@@ -8,62 +8,57 @@ using System.Web.Mvc;
 
 namespace ContosoUniversity.Controllers
 {
-    public class StudentController : Controller
+    public class CourseController : Controller
     {
 
         private ContosoUniversityContext dbCtx = new ContosoUniversityContext();
 
         #region Index and Details
-        // GET: Student
         public ActionResult Index()
         {
 
-            List<Student> students = new List<Student>();
+            List<Course> courses = new List<Course>();
 
-            students = dbCtx.Students.OrderBy(x => x.LastName).ToList();
+            courses = dbCtx.Courses.OrderBy(x => x.Tittle).ToList();
 
-
-
-            return View(students);
+            return View(courses);
         }
 
-        // GET: Student/Details/5
         public ActionResult Details(int id)
         {
 
-            Student student = dbCtx.Students.Find(id);
+            Course courses = dbCtx.Courses.Find(id);
 
-            if(student == null)
+            if(courses == null)
             {
 
                 return HttpNotFound();
 
             }
 
-            return View(student);
+            return View(courses);
         }
         #endregion
 
-        #region Create camp
-        // GET: Student/Create
+        #region Create
         public ActionResult Create()
         {
             return View();
         }
 
-
-        // POST: Student/Create
         [HttpPost]
-        public ActionResult Create(Student student)
+        public ActionResult Create(Course course)
         {
             try
             {
+
                 if (ModelState.IsValid)
                 {
+
                     try
                     {
 
-                        dbCtx.Students.Add(student);
+                        dbCtx.Courses.Add(course);
                         dbCtx.SaveChanges();
 
 
@@ -90,37 +85,35 @@ namespace ContosoUniversity.Controllers
 
                     }//End Catch
 
-                }//End the IF
+                }//End IF
 
                 return RedirectToAction("Index");
-            }//End Secod Try
+            }//End Try
             catch
             {
                 return View();
-            }//End Catch
-        }
+            }
+        }//End Method
         #endregion
 
-        #region Edit the camp
-        // GET: Student/Edit/5
+        #region Edit Camp
         public ActionResult Edit(int id)
         {
 
-            Student student = dbCtx.Students.Find(id);
+            Course course = dbCtx.Courses.Find(id);
 
-            if(student == null)
+            if(course == null)
             {
 
                 return HttpNotFound();
 
             }
 
-            return View(student);
+            return View(course);
         }
 
-        // POST: Student/Edit/5
         [HttpPost]
-        public ActionResult Edit(Student student)
+        public ActionResult Edit(Course course)
         {
             try
             {
@@ -131,7 +124,7 @@ namespace ContosoUniversity.Controllers
                     try
                     {
 
-                        dbCtx.Entry(student).State = System.Data.Entity.EntityState.Modified;
+                        dbCtx.Entry(course).State = System.Data.Entity.EntityState.Modified;
                         dbCtx.SaveChanges();
 
                     }//End secod try
@@ -157,31 +150,31 @@ namespace ContosoUniversity.Controllers
 
                     }//End firts Catch
 
-                }//End IF
+                }//End If
 
                 return RedirectToAction("Index");
-            }//End firts try
+            }//End Try
             catch
             {
                 return View();
-            }//End second Catch
-        }//End Method
+            }
+        }//Fin Method
         #endregion
 
-        #region Delete the camp
-        // GET: Student/Delete/5
+        #region Delete Camp
         public ActionResult Delete(int? id)
         {
-            Student student = dbCtx.Students.Find(id);
 
-            if(student == null)
+            Course course = dbCtx.Courses.Find(id);
+
+            if(course == null)
             {
 
                 return HttpNotFound();
 
             }
 
-            return View(student);
+            return View(course);
         }
 
         [HttpPost]
@@ -189,16 +182,15 @@ namespace ContosoUniversity.Controllers
         {
             try
             {
-
                 try
                 {
 
-                    Student student = dbCtx.Students.Find(id);
+                    Course course = dbCtx.Courses.Find(id);
 
-                    dbCtx.Students.Remove(student);
+                    dbCtx.Courses.Remove(course);
                     dbCtx.SaveChanges();
 
-                }
+                }//End try
                 catch (DbEntityValidationException e)
                 {
 
@@ -214,20 +206,20 @@ namespace ContosoUniversity.Controllers
                             Console.WriteLine("- Property: \"{0}\", Error: \"{1}\"",
                                 ve.PropertyName, ve.ErrorMessage);
 
-                        }
+                        }//End secod foreach
 
-                    }
+                    }//End firts foreach
                     throw;
 
-                }
+                }//End Catch
 
                 return RedirectToAction("Index");
-            }
+            }//End Try
             catch
             {
                 return View();
-            }
-        }
+            }//End catch
+        }//End Method
         #endregion
 
     }

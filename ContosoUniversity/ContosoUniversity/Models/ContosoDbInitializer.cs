@@ -21,6 +21,107 @@ namespace ContosoUniversity.Models
             try
             {
 
+                #region Instructor List
+                List<Instructor> instructors = new List<Instructor>();
+                instructors.Add(new Instructor()
+                {
+
+                    LastName = "Rodriguez",
+                    FirstMidName = "Antonio",
+                    HireDate = DateTime.Now
+
+                });
+
+                instructors.Add(new Instructor()
+                {
+
+                    LastName = "Martinez",
+                    FirstMidName = "Jose",
+                    HireDate = DateTime.Now
+
+                });
+
+                instructors.Add(new Instructor()
+                {
+
+                    LastName = "Estrada",
+                    FirstMidName = "Juan",
+                    HireDate = DateTime.Now
+
+                });
+
+                dbCtx.Instructors.AddRange(instructors);
+                dbCtx.SaveChanges();
+
+                #endregion
+
+                #region Departament List
+                List<Department> departments = new List<Department>();
+                departments.Add(new Department()
+                {
+
+                    Name = "Sistemas",
+                    Budget = 150000.0,
+                    StartDate = DateTime.Now,
+                    InstructorId = 1
+
+                });
+
+                departments.Add(new Department()
+                {
+
+                    Name = "Mecatronica",
+                    Budget = 150000.0,
+                    StartDate = DateTime.Now,
+                    InstructorId = 2
+
+                });
+
+                departments.Add(new Department()
+                {
+
+                    Name = "Quimica",
+                    Budget = 150000.0,
+                    StartDate = DateTime.Now,
+                    InstructorId = 3
+              
+                });
+
+                dbCtx.Departments.AddRange(departments);
+                dbCtx.SaveChanges();
+                #endregion
+
+                #region OfficeAssignment List
+                List<OfficeAssignment> officeAssignments = new List<OfficeAssignment>();
+                officeAssignments.Add(new OfficeAssignment()
+                {
+
+                    InstructorId = 1,
+                    Location = "A lado de Direccion"
+
+                });
+
+                officeAssignments.Add(new OfficeAssignment()
+                {
+
+                    InstructorId = 2,
+                    Location = "A lado de Direccion"
+
+                });
+
+                officeAssignments.Add(new OfficeAssignment()
+                {
+
+                    InstructorId = 3,
+                    Location = "A lado de Direccion"
+
+                });
+
+                dbCtx.OfficeAssignments.AddRange(officeAssignments);
+                dbCtx.SaveChanges();
+
+                #endregion
+
                 #region List - Student
                 List<Student> students = new List<Student>();
                 students.Add(new Student()
@@ -61,6 +162,7 @@ namespace ContosoUniversity.Models
 
                     Tittle = "Base de Datos",
                     Credits = 5,
+                    DepartamentId = 1
 
                 });
 
@@ -69,6 +171,7 @@ namespace ContosoUniversity.Models
 
                     Tittle = "Programacion",
                     Credits = 5,
+                    DepartamentId = 2
 
                 });
 
@@ -77,12 +180,13 @@ namespace ContosoUniversity.Models
 
                     Tittle = "Redes",
                     Credits = 4,
+                    DepartamentId = 3
 
                 });
 
                 dbCtx.Courses.AddRange(courses);
-
                 dbCtx.SaveChanges();
+
                 #endregion
 
                 #region List - Enrollments

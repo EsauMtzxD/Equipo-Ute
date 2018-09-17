@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Web;
 
@@ -20,7 +21,7 @@ namespace ContosoUniversity.Models
         /// Titulo del curso
         /// </summary>
         [Required(ErrorMessage = "El campo Title es obligatorio")]
-        [StringLength(15, ErrorMessage = "La maxima longitud del campo es de 15 caracteres")]
+        [StringLength(30, ErrorMessage = "La maxima longitud del campo es de 30 caracteres")]
         [DataType(DataType.Text, ErrorMessage = "El campo solo acepta caracteres")]
         public string Tittle { get; set; }
 
@@ -29,6 +30,10 @@ namespace ContosoUniversity.Models
         /// </summary>
         [Required(ErrorMessage = "El campo Credits es obligatorio")]
         public int Credits { get; set; }
+
+        [ForeignKey("Departament")]
+        public int DepartamentId { get; set; }
+        public Department Departament { get; set; }
 
         /// <summary>
         /// Relacion entre la tabla Enrollment - <see cref="Course"/>

@@ -15,6 +15,7 @@ namespace ContosoUniversity.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "El campo Location es obligatorio")]
+        [StringLength(50, ErrorMessage = "La maxima longitud del campo son de 50 caracteres")]
         public string Location { get; set; }
 
         [ForeignKey("Instructor")]
