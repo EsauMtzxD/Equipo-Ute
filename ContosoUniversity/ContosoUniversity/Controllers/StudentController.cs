@@ -14,7 +14,7 @@ namespace ContosoUniversity.Controllers
         private ContosoUniversityContext dbCtx = new ContosoUniversityContext();
 
         #region Index and Details
-        // GET: Student
+
         public ActionResult Index()
         {
 
@@ -27,7 +27,6 @@ namespace ContosoUniversity.Controllers
             return View(students);
         }
 
-        // GET: Student/Details/5
         public ActionResult Details(int id)
         {
 
@@ -45,14 +44,14 @@ namespace ContosoUniversity.Controllers
         #endregion
 
         #region Create camp
-        // GET: Student/Create
+
         public ActionResult Create()
         {
             return View();
         }
 
 
-        // POST: Student/Create
+
         [HttpPost]
         public ActionResult Create(Student student)
         {
