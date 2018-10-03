@@ -1,4 +1,5 @@
 ﻿using ContosoUniversity.Models;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity.Validation;
@@ -12,15 +13,49 @@ namespace ContosoUniversity.Controllers
     {
 
         private ContosoUniversityContext dbCtx = new ContosoUniversityContext();
+        string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+
 
         #region Index and Details
         public ActionResult Index()
         {
 
             List<OfficeAssignment> offices = new List<OfficeAssignment>();
+            string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+            MySqlDataReader read;
+            using (MySqlConnection conn = new MySqlConnection(ConnectionString))
+            {
 
-            offices = dbCtx.OfficeAssignments.OrderBy(x => x.Id).ToList();
+                conn.Open();
 
+                using (MySqlCommand cmd = new MySqlCommand("ViewOffice", conn))
+                {  
+
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    read = cmd.ExecuteReader();
+
+                    while (read.Read())
+                    {
+
+                        OfficeAssignment o = new OfficeAssignment();
+                        o.Id = Convert.ToInt32(read["Id"]);
+                        o.Location = read["Location"].ToString();
+                        o.InstructorId = Convert.ToInt32(read["InstructorId"]);
+
+                        offices.Add(o);
+
+                    }
+                    if (read == null)
+                    {
+
+                        return HttpNotFound();
+
+                    }
+
+                }
+                conn.Close();
+            }
 
             return View(offices);
         }
@@ -28,16 +63,42 @@ namespace ContosoUniversity.Controllers
         public ActionResult Details(int id)
         {
 
-            OfficeAssignment office = dbCtx.OfficeAssignments.Find(id);
-
-            if (office == null)
+            string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+            OfficeAssignment o = new OfficeAssignment();
+            MySqlDataReader read;
+            using (MySqlConnection conn = new MySqlConnection(ConnectionString))
             {
 
-                return HttpNotFound();
+                conn.Open();
 
+                using (MySqlCommand cmd = new MySqlCommand("_ViewOffice", conn))
+                {
+
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@_Id", id);
+
+                    read = cmd.ExecuteReader();
+
+                    while (read.Read())
+                    {
+
+                        o.Id = Convert.ToInt32(read["Id"]);
+                        o.Location = read["Location"].ToString();
+                        o.InstructorId = Convert.ToInt32(read["InstructorId"]);
+
+                    }
+                    if (read == null)
+                    {
+
+                        return HttpNotFound();
+
+                    }
+                }
+                conn.Close();
             }
 
-            return View(office);
+            return View(o);
         }
         #endregion
 
@@ -59,9 +120,26 @@ namespace ContosoUniversity.Controllers
                     try
                     {
 
-                        dbCtx.OfficeAssignments.Add(office);
-                        dbCtx.SaveChanges();
+                        string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+                        using (MySqlConnection conn = new MySqlConnection(ConnectionString))
+                        {
 
+                            conn.Open();
+
+                            using (MySqlCommand cmd = new MySqlCommand("InsertOfficeAssignment", conn))
+                            {
+
+                                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                                cmd.Parameters.AddWithValue("@Loc", office.Location);
+                                cmd.Parameters.AddWithValue("@fk", office.InstructorId);
+
+                                cmd.ExecuteNonQuery();
+
+                            }
+
+                            conn.Close();
+                        }
 
                     }//End Second Try
                     catch (DbEntityValidationException e)
@@ -90,8 +168,9 @@ namespace ContosoUniversity.Controllers
 
                 return RedirectToAction("Index");
             }//End Try
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e.ToString());
                 return View();
             }
         }//En Method
@@ -115,7 +194,7 @@ namespace ContosoUniversity.Controllers
         }
 
         [HttpPost]
-        public ActionResult Edit(OfficeAssignment office)
+        public ActionResult Edit(OfficeAssignment office, int id)
         {
             try
             {
@@ -126,8 +205,40 @@ namespace ContosoUniversity.Controllers
                     try
                     {
 
-                        dbCtx.Entry(office).State = System.Data.Entity.EntityState.Modified;
-                        dbCtx.SaveChanges();
+                        MySqlDataReader read;
+                        using (MySqlConnection conn = new MySqlConnection(ConnectionString))
+                        {
+
+                            conn.Open();
+
+                            using (MySqlCommand cmd = new MySqlCommand("EditOffice", conn))
+                            {
+
+                                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                                cmd.Parameters.AddWithValue("@_Loc", office.Location);
+                                cmd.Parameters.AddWithValue("@fk", office.InstructorId);
+                                cmd.Parameters.AddWithValue("@_id", id);
+
+                                read = cmd.ExecuteReader();
+
+                                while (read.Read())
+                                {
+
+                                    office.Location = read["Location"].ToString();
+                                    office.InstructorId = Convert.ToInt32(read["InstructorId"]);
+
+                                }
+                                if (read == null)
+                                {
+
+                                    return HttpNotFound();
+
+                                }
+
+                            }
+                            conn.Close();
+                        }
 
                     }//End secod try
                     catch (DbEntityValidationException e)
@@ -156,31 +267,57 @@ namespace ContosoUniversity.Controllers
 
                 return RedirectToAction("Index");
             }//End Try
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e.ToString());
                 return View();
             }
         }//End Method
         #endregion
 
         #region Delete
-        public ActionResult Delete(int id)
+        public ActionResult Delete(int? id)
         {
 
-            OfficeAssignment office = dbCtx.OfficeAssignments.Find(id);
-
-            if (office == null)
+            string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+            OfficeAssignment o = new OfficeAssignment();
+            MySqlDataReader read;
+            using (MySqlConnection conn = new MySqlConnection(ConnectionString))
             {
 
-                return HttpNotFound();
+                conn.Open();
 
+                using (MySqlCommand cmd = new MySqlCommand("_ViewOffice", conn))
+                {
+
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@_Id", id);
+
+                    read = cmd.ExecuteReader();
+
+                    while (read.Read())
+                    {
+
+                        o.Location = read["Location"].ToString();
+                        o.InstructorId = Convert.ToInt32(read["InstructorId"]);
+
+                    }
+                    if (read == null)
+                    {
+
+                        return HttpNotFound();
+
+                    }
+                }
+                conn.Close();
             }
 
-            return View();
+            return View(o);
         }
 
         [HttpPost]
-        public ActionResult Delete(int id, FormCollection collection)
+        public ActionResult Delete(int id, FormCollection collection )
         {
             try
             {
@@ -188,10 +325,39 @@ namespace ContosoUniversity.Controllers
                 try
                 {
 
-                    OfficeAssignment office = dbCtx.OfficeAssignments.Find(id);
+                    OfficeAssignment office = new OfficeAssignment();
+                    MySqlDataReader read;
+                    using(MySqlConnection conn = new MySqlConnection(ConnectionString))
+                    {
 
-                    dbCtx.OfficeAssignments.Remove(office);
-                    dbCtx.SaveChanges();
+                        conn.Open();
+
+                        using(MySqlCommand cmd = new MySqlCommand("DeleteOffice", conn))
+                        {
+
+                            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                            cmd.Parameters.AddWithValue("@_Id", id);
+
+                            read = cmd.ExecuteReader();
+
+                            while (read.Read())
+                            {
+
+                                office.Location = read["Location"].ToString();
+                                office.InstructorId = Convert.ToInt32(read["InstrucorId"]);
+
+                            }
+                            if(read == null)
+                            {
+
+                                return HttpNotFound();
+
+                            }
+
+                        }
+                        conn.Close();
+                    }
 
                 }//End try
                 catch (DbEntityValidationException e)
@@ -218,8 +384,9 @@ namespace ContosoUniversity.Controllers
 
                 return RedirectToAction("Index");
             }//End Try
-            catch
+            catch(Exception e)
             {
+                Console.WriteLine(e.ToString());
                 return View();
             }
         }//En Method

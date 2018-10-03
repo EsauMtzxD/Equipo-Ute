@@ -1,4 +1,5 @@
 ﻿using ContosoUniversity.Models;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity.Validation;
@@ -18,8 +19,45 @@ namespace ContosoUniversity.Controllers
         {
 
             List<Course> courses = new List<Course>();
+            
+            string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+            MySqlDataReader read;
+            using(MySqlConnection conn = new MySqlConnection(ConnectionString))
+            {
 
-            courses = dbCtx.Courses.OrderBy(x => x.Tittle).ToList();
+                conn.Open();
+
+                using(MySqlCommand cmd = new MySqlCommand("ViewCourse", conn))
+                {
+
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    read = cmd.ExecuteReader();
+
+                    while (read.Read())
+                    {
+
+                        Course c = new Course();
+                        c.Id = Convert.ToInt32(read["Id"]);
+                        c.Tittle = read["Tittle"].ToString();
+                        c.Credits = Convert.ToInt32(read["Credits"]);
+                        c.DepartamentId = Convert.ToInt32(read["DepartamentId"]);
+
+                        courses.Add(c);
+
+                    }
+                    if(read == null)
+                    {
+
+                        return HttpNotFound();
+
+                    }
+
+                }
+
+                conn.Close();
+
+            }
 
             return View(courses);
         }
@@ -27,16 +65,45 @@ namespace ContosoUniversity.Controllers
         public ActionResult Details(int id)
         {
 
-            Course courses = dbCtx.Courses.Find(id);
-
-            if(courses == null)
+            Course c = new Course();
+            string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+            MySqlDataReader read;
+            using(MySqlConnection conn = new MySqlConnection(ConnectionString))
             {
 
-                return HttpNotFound();
+                conn.Open();
+
+                using(MySqlCommand cmd = new MySqlCommand("_ViewCourse", conn))
+                {
+
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@_Id",id);
+
+                    read = cmd.ExecuteReader();
+
+                    while (read.Read())
+                    {
+
+                        c.Tittle = read["Tittle"].ToString();
+                        c.Credits = Convert.ToInt32(read["Credits"]);
+                        c.DepartamentId = Convert.ToInt32(read["DepartamentId"]);
+
+                    }
+                    if(read == null)
+                    {
+
+                        return HttpNotFound();
+
+                    }
+
+                }
+
+                conn.Close();
 
             }
 
-            return View(courses);
+            return View(c);
         }
         #endregion
 
@@ -58,9 +125,29 @@ namespace ContosoUniversity.Controllers
                     try
                     {
 
-                        dbCtx.Courses.Add(course);
-                        dbCtx.SaveChanges();
+                        string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+                        MySqlDataReader read;
+                        using(MySqlConnection conn = new MySqlConnection(ConnectionString))
+                        {
 
+                            conn.Open();
+
+                            using(MySqlCommand cmd = new MySqlCommand("InsertCourse", conn))
+                            {
+
+                                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                                cmd.Parameters.AddWithValue("@_Tittle", course.Tittle);
+                                cmd.Parameters.AddWithValue("@_Credits", course.Credits);
+                                cmd.Parameters.AddWithValue("@_Departament", course.DepartamentId);
+
+                                cmd.ExecuteNonQuery();
+
+                            }
+
+                            conn.Close();
+
+                        }
 
                     }//End Second Try
                     catch (DbEntityValidationException e)
@@ -124,8 +211,45 @@ namespace ContosoUniversity.Controllers
                     try
                     {
 
-                        dbCtx.Entry(course).State = System.Data.Entity.EntityState.Modified;
-                        dbCtx.SaveChanges();
+                        string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+                        MySqlDataReader read;
+                        using(MySqlConnection conn = new MySqlConnection(ConnectionString))
+                        {
+
+                            conn.Open();
+
+                            using(MySqlCommand cmd = new MySqlCommand("EditCourse", conn))
+                            {
+
+                                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                                cmd.Parameters.AddWithValue("@_Tittle", course.Tittle);
+                                cmd.Parameters.AddWithValue("@_Credits", course.Credits);
+                                cmd.Parameters.AddWithValue("@_Departament", course.DepartamentId);
+                                cmd.Parameters.AddWithValue("@_Id", course.Id);
+
+                                read = cmd.ExecuteReader();
+
+                            }
+                            while (read.Read())
+                            {
+
+                                course.Tittle = read["Tittle"].ToString();
+                                course.Credits = Convert.ToInt32(read["Credits"]);
+                                course.DepartamentId = Convert.ToInt32(read["DepartamentId"]);
+
+                            }
+                            if(read == null)
+                            {
+
+                                return HttpNotFound();
+
+                            }
+
+                            conn.Close();
+
+                        }
+
 
                     }//End secod try
                     catch (DbEntityValidationException e)
@@ -154,8 +278,9 @@ namespace ContosoUniversity.Controllers
 
                 return RedirectToAction("Index");
             }//End Try
-            catch
+            catch(Exception e)
             {
+                Console.WriteLine(e);
                 return View();
             }
         }//Fin Method
@@ -185,10 +310,43 @@ namespace ContosoUniversity.Controllers
                 try
                 {
 
-                    Course course = dbCtx.Courses.Find(id);
+                    Course c = new Course();
+                    string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+                    MySqlDataReader read;
+                    using(MySqlConnection conn = new MySqlConnection(ConnectionString))
+                    {
 
-                    dbCtx.Courses.Remove(course);
-                    dbCtx.SaveChanges();
+                        conn.Open();
+
+                        using(MySqlCommand cmd = new MySqlCommand("DeleteCourse", conn))
+                        {
+
+                            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                            cmd.Parameters.AddWithValue("@_Id", c.Id);
+
+                            read = cmd.ExecuteReader();
+
+                            while (read.Read())
+                            {
+
+                                c.Tittle = read["Tittle"].ToString();
+                                c.Credits = Convert.ToInt32(read["Credits"]);
+                                c.DepartamentId = Convert.ToInt32(read["DepartamentId"]);
+
+                            }
+                            if(read == null)
+                            {
+
+                                return HttpNotFound();
+
+                            }
+
+                            conn.Close();
+
+                        }
+
+                    }
 
                 }//End try
                 catch (DbEntityValidationException e)
@@ -215,8 +373,9 @@ namespace ContosoUniversity.Controllers
 
                 return RedirectToAction("Index");
             }//End Try
-            catch
+            catch(Exception e)
             {
+                Console.WriteLine(e);
                 return View();
             }//End catch
         }//End Method

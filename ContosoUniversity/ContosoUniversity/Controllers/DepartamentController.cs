@@ -1,4 +1,5 @@
 ﻿using ContosoUniversity.Models;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity.Validation;
@@ -18,8 +19,43 @@ namespace ContosoUniversity.Controllers
         {
 
             List<Department> departments = new List<Department>();
+            string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+            MySqlDataReader read;
+            using (MySqlConnection conn = new MySqlConnection(ConnectionString))
+            {
 
-            departments = dbCtx.Departments.OrderBy(x => x.Name).ToList();
+                conn.Open();
+
+                using(MySqlCommand cmd = new MySqlCommand("_View", conn))
+                {
+
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    read = cmd.ExecuteReader();
+
+                    while (read.Read())
+                    {
+
+                        Department department = new Department();
+                        department.Id = Convert.ToInt32(read["Id"]);
+                        department.Name = read["Name"].ToString();
+                        department.Budget = Convert.ToDouble(read["Budget"]);
+                        department.StartDate = Convert.ToDateTime(read["StartDate"]);
+                        department.InstructorId = Convert.ToInt32(read["InstructorId"]);
+
+                        departments.Add(department);
+
+                    }
+                    if(read == null)
+                    {
+
+                        return HttpNotFound();
+
+                    }
+
+                }
+                conn.Close();
+            }
 
             return View(departments);
         }
@@ -27,16 +63,44 @@ namespace ContosoUniversity.Controllers
         public ActionResult Details(int id)
         {
 
-            Department department = dbCtx.Departments.Find(id);
-
-            if(department == null)
+            Department d = new Department();
+            string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+            MySqlDataReader read;
+            using (MySqlConnection conn = new MySqlConnection(ConnectionString))
             {
 
-                return HttpNotFound();
+                conn.Open();
 
+                using (MySqlCommand cmd = new MySqlCommand("_ViewDepartament ", conn))
+                {
+
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@_Id", id);
+
+                    read = cmd.ExecuteReader();
+
+                    while (read.Read())
+                    {
+
+                        d.Name = read["Name"].ToString();
+                        d.Budget = Convert.ToDouble(read["Budget"]);
+                        d.StartDate = Convert.ToDateTime(read["StartDate"]);
+                        d.InstructorId = Convert.ToInt32(read["InstructorId"]);
+
+                    }
+                    if(read == null)
+                    {
+
+                        return HttpNotFound();
+
+                    }
+
+                }
+                conn.Close();
             }
 
-            return View(department);
+            return View(d);
         }
         #endregion
 
@@ -48,7 +112,7 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost]
         public ActionResult Create(Department department)
-        {
+            {
             try
             {
 
@@ -58,8 +122,27 @@ namespace ContosoUniversity.Controllers
                     try
                     {
 
-                        dbCtx.Departments.Add(department);
-                        dbCtx.SaveChanges();
+                        string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+                        using(MySqlConnection conn = new MySqlConnection(ConnectionString))
+                        {
+
+                            conn.Open();
+
+                            using(MySqlCommand cmd = new MySqlCommand("InsertDepartment", conn))
+                            {
+
+                                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                                cmd.Parameters.AddWithValue("@_Name", department.Name);
+                                cmd.Parameters.AddWithValue("@_Budget", department.Budget);
+                                cmd.Parameters.AddWithValue("@_StartDate", department.StartDate);
+                                cmd.Parameters.AddWithValue("@fk", department.InstructorId);
+
+                                cmd.ExecuteNonQuery();
+
+                            }
+                            conn.Close();
+                        }
 
 
                     }//End Second Try
@@ -89,8 +172,9 @@ namespace ContosoUniversity.Controllers
 
                 return RedirectToAction("Index");
             }//End Try
-            catch
+            catch(Exception e)
             {
+                Console.WriteLine(e);
                 return View();
             }
         }//End Method
@@ -124,8 +208,45 @@ namespace ContosoUniversity.Controllers
                     try
                     {
 
-                        dbCtx.Entry(department).State = System.Data.Entity.EntityState.Modified;
-                        dbCtx.SaveChanges();
+                        string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+                        MySqlDataReader read;
+                        using(MySqlConnection conn = new MySqlConnection(ConnectionString))
+                        {
+
+                            conn.Open();
+
+                            using(MySqlCommand cmd = new MySqlCommand("EditDepartament", conn))
+                            {
+
+                                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                                cmd.Parameters.AddWithValue("@_Name", department.Name);
+                                cmd.Parameters.AddWithValue("@_Budget", department.Budget);
+                                cmd.Parameters.AddWithValue("@_StartDate", department.StartDate);
+                                cmd.Parameters.AddWithValue("@fk", department.InstructorId);
+                                cmd.Parameters.AddWithValue("@_Id", department.Id);
+
+                                read = cmd.ExecuteReader();
+
+                                while (read.Read())
+                                {
+
+                                    department.Name = read["Name"].ToString();
+                                    department.Budget = Convert.ToDouble(read["Budget"]);
+                                    department.StartDate = Convert.ToDateTime(read["StartDate"]);
+                                    department.InstructorId = Convert.ToInt32(read["InstructorId"]);
+
+                                }
+                                if(read == null)
+                                {
+
+                                    return HttpNotFound();
+
+                                }
+
+                            }
+                            conn.Close();
+                        }
 
                     }//End secod try
                     catch (DbEntityValidationException e)
@@ -186,11 +307,42 @@ namespace ContosoUniversity.Controllers
                 try
                 {
 
-                    Department department = dbCtx.Departments.Find(id);
+                    Department d = new Department();
+                    string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+                    MySqlDataReader read;
+                    using (MySqlConnection conn = new MySqlConnection(ConnectionString))
+                    {
 
-                    dbCtx.Departments.Remove(department);
-                    dbCtx.SaveChanges();
+                        conn.Open();
 
+                        using (MySqlCommand cmd = new MySqlCommand("DeleteDepartament ", conn))
+                        {
+
+                            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                            cmd.Parameters.AddWithValue("@_Id", id);
+
+                            read = cmd.ExecuteReader();
+
+                            while (read.Read())
+                            {
+
+                                d.Name = read["Name"].ToString();
+                                d.Budget = Convert.ToDouble(read["Budget"]);
+                                d.StartDate = Convert.ToDateTime(read["StartDate"]);
+                                d.InstructorId = Convert.ToInt32(read["InstructorId"]);
+
+                            }
+                            if (read == null)
+                            {
+
+                                return HttpNotFound();
+
+                            }
+                            conn.Close();
+
+                        }
+                    }
                 }//End try
                 catch (DbEntityValidationException e)
                 {
@@ -216,8 +368,9 @@ namespace ContosoUniversity.Controllers
 
                 return RedirectToAction("Index");
             }//End Try
-            catch
+            catch(Exception e)
             {
+                Console.WriteLine(e);
                 return View();
             }
         }//End Method

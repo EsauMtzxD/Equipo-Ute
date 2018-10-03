@@ -1,6 +1,9 @@
 ﻿using ContosoUniversity.Models;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
 using System.Data.Entity.Validation;
 using System.Linq;
 using System.Web;
@@ -19,7 +22,39 @@ namespace ContosoUniversity.Controllers
 
             List<Instructor> instructors = new List<Instructor>();
 
-            instructors = dbCtx.Instructors.OrderBy(x => x.Id).ToList();
+            string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+            MySqlDataReader read;
+            
+            using(MySqlConnection conn = new MySqlConnection(ConnectionString))
+            {
+
+                conn.Open();
+
+                using(MySqlCommand cmd = new MySqlCommand("ViewInstructor", conn))
+                {
+
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    read = cmd.ExecuteReader();
+
+                    while (read.Read())
+                    {
+
+                        Instructor instructor = new Instructor();
+                        instructor.Id = Convert.ToInt32(read["Id"]);
+                        instructor.LastName = read["LastName"].ToString();
+                        instructor.FirstMidName = read["FirstMidName"].ToString();
+                        instructor.HireDate = Convert.ToDateTime(read["HireDate"]);
+
+                        instructors.Add(instructor);
+
+                    }
+
+
+                }
+
+                conn.Close();
+            }
 
             return View(instructors);
         }
@@ -27,12 +62,42 @@ namespace ContosoUniversity.Controllers
         public ActionResult Details(int id)
         {
 
-            Instructor instructor = dbCtx.Instructors.Find(id);
-
-            if(instructor == null)
+            Instructor instructor = new Instructor();
+            string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+            MySqlDataReader read;
+            using(MySqlConnection conn = new MySqlConnection(ConnectionString))
             {
 
-                return HttpNotFound();
+                conn.Open();
+
+                using(MySqlCommand cmd = new MySqlCommand("_ViewInstructor", conn))
+                {
+
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@_Id", id);
+
+                    read = cmd.ExecuteReader();
+
+
+                    while (read.Read())
+                    {
+
+                        instructor.LastName = read["LastName"].ToString();
+                        instructor.FirstMidName = read["FirstMidName"].ToString();
+                        instructor.HireDate = Convert.ToDateTime(read["HireDate"]);
+
+                    }
+                    if (instructor == null)
+                    {
+
+                        return HttpNotFound();
+
+                    }
+
+                }
+
+                conn.Close();
 
             }
 
@@ -59,8 +124,29 @@ namespace ContosoUniversity.Controllers
                     try
                     {
 
-                        dbCtx.Instructors.Add(instructor);
-                        dbCtx.SaveChanges();
+                        string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+                        using(MySqlConnection conn = new MySqlConnection(ConnectionString))
+                        {
+
+                            conn.Open();
+
+                            using(MySqlCommand cmd = new MySqlCommand("InsertInstructor", conn))
+                            {
+
+                                cmd.CommandType = CommandType.StoredProcedure;
+
+                                cmd.Parameters.AddWithValue("@Lastn", instructor.LastName);
+                                cmd.Parameters.AddWithValue("@Firstn", instructor.FirstMidName);
+                                cmd.Parameters.AddWithValue("@Hire", instructor.HireDate);
+
+                                cmd.ExecuteNonQuery();
+
+
+                            }
+
+                            conn.Close();
+
+                        }
 
 
                     }//End Second Try
@@ -90,11 +176,14 @@ namespace ContosoUniversity.Controllers
 
                 return RedirectToAction("Index");
             }//End try
-            catch
+            catch(Exception e)
             {
+
+                Console.WriteLine(e.Message);
+
                 return View();
             }
-        }//End Method
+         }//End Method
         #endregion
 
         #region Edit
@@ -114,7 +203,7 @@ namespace ContosoUniversity.Controllers
         }
 
         [HttpPost]
-        public ActionResult Edit(Instructor instructor)
+        public ActionResult Edit(Instructor instructor, int id)
         {
             try
             {
@@ -125,8 +214,47 @@ namespace ContosoUniversity.Controllers
                     try
                     {
 
-                        dbCtx.Entry(instructor).State = System.Data.Entity.EntityState.Modified;
-                        dbCtx.SaveChanges();
+                        string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
+                        MySqlDataReader read;
+                        using (MySqlConnection conn = new MySqlConnection(ConnectionString))
+                        {
+
+                            conn.Open();
+
+                            using(MySqlCommand cmd = new MySqlCommand("EditInstructor", conn))
+                            {
+
+                                cmd.CommandType = CommandType.StoredProcedure;
+
+                                cmd.Parameters.AddWithValue("@_Last", instructor.LastName);
+                                cmd.Parameters.AddWithValue("@_First", instructor.FirstMidName);
+                                cmd.Parameters.AddWithValue("@Hire", instructor.HireDate);
+                                cmd.Parameters.AddWithValue("@_Id", id);
+
+                                read = cmd.ExecuteReader();
+
+
+                                while (read.Read())
+                                {
+
+                                    instructor.LastName = read["LastName"].ToString();
+                                    instructor.FirstMidName = read["FirstMidName"].ToString();
+                                    instructor.HireDate = Convert.ToDateTime(read["HireDate"]);
+
+                                }
+                                if (read == null)
+                                {
+
+                                    return HttpNotFound();
+
+                                }
+
+                            }
+
+                            conn.Close();
+
+                        }
+
 
                     }//End secod try
                     catch (DbEntityValidationException e)
@@ -155,8 +283,11 @@ namespace ContosoUniversity.Controllers
 
                 return RedirectToAction("Index");
             }//end try
-            catch
+            catch(Exception e)
             {
+
+                Console.WriteLine(e);
+
                 return View();
             }
         }//End method
@@ -184,13 +315,47 @@ namespace ContosoUniversity.Controllers
             try
             {
 
-                 try
+                try
                 {
+                    string ConnectionString = "Server = localhost; Port = 3306; Database = contosouniversity; Uid = root; Pwd = 1234";
 
-                    Instructor instructor = dbCtx.Instructors.Find(id);
+                    Instructor instructor = new Instructor();
+                    MySqlDataReader read;
+                    using (MySqlConnection conn = new MySqlConnection(ConnectionString))
+                    {
 
-                    dbCtx.Instructors.Remove(instructor);
-                    dbCtx.SaveChanges();
+                        conn.Open();
+
+                        using (MySqlCommand cmd = new MySqlCommand("DeleteInstructor", conn))
+                        {
+
+                            cmd.CommandType = CommandType.StoredProcedure;
+
+                            cmd.Parameters.AddWithValue("@_Id", id);
+
+                            read = cmd.ExecuteReader();
+
+
+                            while (read.Read())
+                            {
+
+                                instructor.LastName = read["LastName"].ToString();
+                                instructor.FirstMidName = read["FirstMidName"].ToString();
+                                instructor.HireDate = Convert.ToDateTime(read["HireDate"]);
+
+                            }
+                            if(read == null)
+                            {
+
+                                return HttpNotFound();
+
+                            }
+
+                        }
+
+                        conn.Close();
+
+                    }
 
                 }//End try
                 catch (DbEntityValidationException e)
@@ -217,8 +382,11 @@ namespace ContosoUniversity.Controllers
 
                 return RedirectToAction("Index");
             }//End try
-            catch
+            catch(Exception e)
             {
+
+                Console.WriteLine(e);
+
                 return View();
             }//End Catch
         }//End Method
